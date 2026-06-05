@@ -1,0 +1,16 @@
+#virtual environment
+.venv/
+
+#environment variables
+.env 
+
+#python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+#extra info
+metadata.txt    
+data/
+Evaluation Criteria.docx
+
