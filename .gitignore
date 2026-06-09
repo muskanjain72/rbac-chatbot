@@ -10,7 +10,5 @@ __pycache__/
 .pytest_cache/
 
 #extra info
-metadata.txt    
-data/
 Evaluation Criteria.docx
 
