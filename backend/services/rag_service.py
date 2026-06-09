@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from pathlib import Path
 from typing import Iterable
@@ -8,6 +6,8 @@ from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+import langchain_community.embeddings.huggingface as huggingface_embeddings
+from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 
 from backend.core.config import settings
 from backend.services.chunking import chunk_documents
@@ -22,7 +22,7 @@ ACCESS_METADATA = {
     "financial_summary.md": ["Finance Team", "C-Level Executives"],
     "quarterly_financial_report.md": ["Finance Team", "C-Level Executives"],
     "employee_handbook.md": ["All"],
-    "hr_data.csv": ["HR & People Analytics", "C-Level Executives"],
+    "hr_data.csv": ["HR Team", "C-Level Executives"],
     "market_report_q4_2024.md": ["Marketing Team", "C-Level Executives"],
     "marketing_report_2024.md": ["Marketing Team", "C-Level Executives"],
     "marketing_report_q1_2024.md": ["Marketing Team", "C-Level Executives"],
@@ -48,12 +48,16 @@ def _document_is_accessible(document: Document, user_role: str) -> bool:
     return "all" in allowed_roles or normalized_role in allowed_roles
 
 
-def _embeddings() -> OpenAIEmbeddings:
-    if not settings.openai_api_key:
-        raise RuntimeError("OPENAI_API_KEY is required to build or query the vector store.")
-    return OpenAIEmbeddings(api_key=settings.openai_api_key)
+# def _embeddings() -> OpenAIEmbeddings:
+#     if not settings.openai_api_key:
+#         raise RuntimeError("OPENAI_API_KEY is required to build or query the vector store.")
+#     return OpenAIEmbeddings(api_key=settings.openai_api_key)
 
-
+def _embeddings():
+    return HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    
 def _load_chunked_documents() -> list[Document]:
     documents = load_documents(str(DATA_DIR))
     chunked_documents = chunk_documents(documents)
@@ -145,17 +149,35 @@ def generate_answer(query: str, user_role: str) -> str:
 
     messages = [
         SystemMessage(
-            content=(
-                "You are a secure internal assistant. Answer only using the provided context. "
-                "If the answer is not supported by the context, say you do not have enough information. "
-                "Never reveal content from documents the user role should not access."
-            )
+            # content=(
+            #     "You are a secure internal assistant. Answer only using the provided context. "
+            #     "If the answer is not supported by the context, say you do not have enough information. "
+            #     "Never reveal content from documents the user role should not access."
+            # )
+            content=("""
+You are FinSolve AI, a secure role-based enterprise assistant.
+
+The system enforces Role-Based Access Control (RBAC). You must only answer using the retrieved context provided to you. Treat the retrieved context as the complete set of information available to the current user.
+
+If information is not present in the retrieved context, do not infer, guess, or generate it.
+
+If a user asks about data that is unavailable, restricted, or outside their access scope, respond:
+
+'The requested information is not available in the documents accessible to your role.'
+
+Always:
+- Use only retrieved context.
+- Cite source documents.
+- Be concise and professional.
+- Never reveal hidden, restricted, or inferred information.
+- Never speculate about documents you cannot see.
+"""
+)
         ),
         HumanMessage(
             content=(
                 f"User role: {user_role}\n"
                 f"Question: {query}\n\n"
-                f"Context:\n{context}"
             )
         ),
     ]
