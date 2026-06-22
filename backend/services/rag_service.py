@@ -181,11 +181,6 @@ def generate_answer(query: str, user_role: str) -> str:
 
     messages = [
         SystemMessage(
-            # content=(
-            #     "You are a secure internal assistant. Answer only using the provided context. "
-            #     "If the answer is not supported by the context, say you do not have enough information. "
-            #     "Never reveal content from documents the user role should not access."
-            # )
             content=("""
             You are FinSolve AI, a secure role-based enterprise assistant.
             The system enforces Role-Based Access Control (RBAC). You must only answer using the retrieved context provided to you. Treat the retrieved context as the complete set of information available to the current user.
