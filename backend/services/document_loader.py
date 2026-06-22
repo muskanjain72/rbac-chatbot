@@ -4,6 +4,7 @@ from pathlib import Path
 
 from langchain_core.documents import Document
 
+#supports only md, txt, and csv files for loading documents. This is to avoid the need for extra dependencies for markdown parsing and to keep the loading process simple and efficient.
 SUPPORTED_SUFFIXES = {".md", ".txt", ".csv"}
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -39,11 +40,13 @@ def load_documents(path: str):
     `DirectoryLoader` for markdown parsing, so loading works in a minimal
     environment without extra installs.
     """
+    #so basically Path returns a path object so that we can perform operations on it like checking if it exists, getting its absolute path, etc. expanduser() is used to expand the ~ to the user's home directory.
     base_path = Path(path).expanduser()
     if not base_path.is_absolute():
         base_path = (Path.cwd() / base_path).resolve()
         if not base_path.exists():
             base_path = (REPO_ROOT / path).resolve()
+            #.resolve() is used to get the absolute path of the file, and it also resolves any symbolic links in the path. 
     else:
         base_path = base_path.resolve()
     if not base_path.exists():

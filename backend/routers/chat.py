@@ -15,8 +15,9 @@ class ChatRequest(BaseModel):
 def home():
     return {"message": "FinSolve Chatbot API Running"}
 
+#whenever i get a post request to the /chat endpoint with a JSON body containing the query and user_role, the chat function is called.
 
-@router.post("/")
+@router.post("/chat")
 def chat(request: ChatRequest):
     answer = generate_answer(request.query, request.user_role)
     return {

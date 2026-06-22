@@ -20,7 +20,7 @@ def chunk_documents(documents: list[Document]):
     chunked_docs = text_splitter.split_documents(documents)
     return chunked_docs  #returns a list of Document objects where each document's page_content is a chunk of the original content, and metadata is preserved.
 
-
+#checkign the working
 if __name__== "__main__":
     # Example usage
     sample_docs = [
